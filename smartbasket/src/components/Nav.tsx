@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
-import { User, Users, Menu, Search, ShoppingBasket, ShoppingCart, Boxes, ClipboardCheck, LogOut, Package, PlusCircle, X } from 'lucide-react';
+import { User, Users, Menu, Search, ShoppingCart, Boxes, ClipboardCheck, LogOut, Package, PlusCircle, X } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux/store';
@@ -75,20 +75,20 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const sideBar = menuOpen ? createPortal(
     <AnimatePresence>
-      <button type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-9998 bg-slate-950/40 backdrop-blur-sm" />
+      <button type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-9998 bg-black/40 backdrop-blur-sm" />
       <motion.div
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: -100 }}
         transition={{ type: "spring", stiffness: 100, damping: 14 }}
         id="mobile-navigation"
-        className="fixed inset-y-0 left-0 z-9999 flex w-[85%] max-w-sm flex-col overflow-y-auto bg-emerald-950 p-6 text-white shadow-2xl"
+        className="fixed top-0 left-0 h-full w-[75%] sm:w-[60%] z-9999 bg-linear-to-b from-green-800/90 via-green-900/90 to-green-900/90 backdrop-blur-xl border-r border-green-400 shadow-[0_0_50px_-10px_rgba(0,255,100,0.3)] flex flex-col overflow-y-auto p-6 text-white"
       >
         <div className="flex justify-between items-center mb-2">
           <h1 className="font-extrabold text-2xl tracking-wide">{user.role === "admin" ? "Admin panel" : user.role === "shopkeeper" ? "Shopkeeper panel" : "SmartBasket"}</h1>
           <button 
             aria-label="Close navigation"
-            className="rounded-lg p-2 text-emerald-100 transition hover:bg-white/10" 
+            className="text-3xl hover:text-red-400 transition"
             onClick={() => setMenuOpen(false)}
           >
             <X className="w-6 h-6" />
@@ -140,7 +140,7 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
           )}
         </div>
 
-        {user.role === 'deliveryBoy' && <Link href="/delivery/my-deliveries" onClick={() => setMenuOpen(false)} className="mt-3 flex items-center gap-3 rounded-lg bg-white/10 p-3 text-sm"><Package size={20} /> My deliveries</Link>}
+        {user.role === 'deliveryBoy' && <Link href="/delivery/my-deliveries" onClick={() => setMenuOpen(false)} className="mt-3 flex items-center gap-3 rounded-lg bg-white/10 p-3 text-sm hover:bg-white/20 hover:pl-4 transition-all"><Package size={20} /> My deliveries</Link>}
         <div className="my-5 border-t border-white/20"></div>
 
         {user?.role === "user" && (
@@ -163,10 +163,9 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   return (
     <>
-      <nav aria-label="Main navigation" className="fixed top-3 left-1/2 z-50 flex h-18 w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-emerald-950 px-4 text-white shadow-lg shadow-emerald-950/10 sm:top-4 sm:px-6">
+      <nav aria-label="Main navigation" className="w-[95%] fixed top-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-green-500 to-green-700 rounded-2xl shadow-lg shadow-black/30 flex justify-between items-center h-20 px-4 md:px-8 z-50">
 
-        <Link href="/" className="flex shrink-0 items-center gap-2.5 text-base font-bold tracking-tight text-white sm:text-xl">
-          <span className="hidden rounded-xl bg-emerald-400/15 p-2 text-emerald-300 sm:block"><ShoppingBasket size={22} aria-hidden="true" /></span>
+        <Link href="/" className="text-white font-extrabold text-2xl sm:text-3xl tracking-wide hover:scale-105 transition-transform">
           SmartBasket
         </Link>
 
@@ -181,17 +180,17 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
           </form>
         )}
 
-        {user.role === 'deliveryBoy' && <Link href="/delivery/my-deliveries" className="hidden items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-50 hover:bg-white/10 lg:flex"><Package size={18} /> My deliveries</Link>}
+        {user.role === 'deliveryBoy' && <Link href="/delivery/my-deliveries" className="hidden items-center gap-2 bg-white text-green-700 font-semibold px-4 py-2 rounded-full hover:bg-green-100 transition-all lg:flex"><Package size={18} /> My deliveries</Link>}
         {/* Desktop Admin Links */}
         {user?.role === "admin" && (
           <div className='hidden lg:flex items-center gap-2'>
-            <Link href='/admin/view-grocery' className='flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300'>
+            <Link href='/admin/view-grocery' className='flex items-center gap-2 bg-white text-green-700 font-semibold px-4 py-2 rounded-full hover:bg-green-100 transition-all'>
               <Boxes className='w-5 h-5' /> View Grocery
             </Link>
-            <Link href='/admin/manage-orders' className='flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300'>
+            <Link href='/admin/manage-orders' className='flex items-center gap-2 bg-white text-green-700 font-semibold px-4 py-2 rounded-full hover:bg-green-100 transition-all'>
               <ClipboardCheck className='w-5 h-5' /> Manage Orders
             </Link>
-            <Link href='/admin/users' className='flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300'>
+            <Link href='/admin/users' className='flex items-center gap-2 bg-white text-green-700 font-semibold px-4 py-2 rounded-full hover:bg-green-100 transition-all'>
               <Users className='w-5 h-5' /> Users
             </Link>
           </div>
@@ -200,10 +199,10 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
         {/* Desktop Shopkeeper Links */}
         {user?.role === "shopkeeper" && (
           <div className='hidden lg:flex items-center gap-2'>
-            <Link href='/admin/add-grocery' className='flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300'>
+            <Link href='/admin/add-grocery' className='flex items-center gap-2 bg-white text-green-700 font-semibold px-4 py-2 rounded-full hover:bg-green-100 transition-all'>
               <PlusCircle className='w-5 h-5' /> Add Grocery
             </Link>
-            <Link href='/admin/view-grocery' className='flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300'>
+            <Link href='/admin/view-grocery' className='flex items-center gap-2 bg-white text-green-700 font-semibold px-4 py-2 rounded-full hover:bg-green-100 transition-all'>
               <Boxes className='w-5 h-5' /> View Grocery
             </Link>
           </div>
@@ -230,16 +229,16 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
 
           {/* Mobile Menu Button */}
           <button type="button" aria-label="Open navigation" aria-expanded={menuOpen} aria-controls="mobile-navigation"
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 transition hover:bg-white/20 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md hover:scale-105 transition lg:hidden"
             onClick={() => setMenuOpen(prev => !prev)}
           >
-            <Menu className="h-5 w-5 text-white" />
+            <Menu className="text-green-600 w-6 h-6" />
           </button>
 
           {/* Profile Dropdown */}
           <div className="relative" ref={profileDropDown}>
             <button type="button" aria-label="Open account menu" aria-expanded={open}
-              className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-emerald-800 bg-emerald-50 transition hover:border-emerald-400"
+              className="relative bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-md cursor-pointer hover:scale-105 transition overflow-hidden"
               onClick={() => setOpen(prev => !prev)}
             >
               {user?.image ? (

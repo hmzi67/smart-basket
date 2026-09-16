@@ -16,8 +16,9 @@ function DeliveryChat({orderId,deliveryBoyId}:props) {
   const [messages,setMessages]=useState<IMessages[]>([])
   const chatBoxRef=useRef<HTMLDivElement>(null)
   const [loading,setLoading]=useState(false)
-const [suggestions, setSuggestions] = useState([
-    
+const [suggestions, setSuggestions] = useState<string[]>([
+  'I’m reaching soon 🚀', 'Your order is almost there',
+  'Please stay available 🙂', 'Call me if needed 📞',
 ])
 
 
@@ -89,7 +90,7 @@ setLoading(true)
 
 
   return (
-    <OrderChatPanel title="Chat with customer" messages={messages} currentUserId={deliveryBoyId}
+    <OrderChatPanel title="Quick Replies" messages={messages} currentUserId={deliveryBoyId}
       message={newMessage} onMessageChange={setNewMessage} onSend={sendMsg}
       suggestions={suggestions} onSuggest={getSuggestion} suggesting={loading} chatRef={chatBoxRef} />
   )

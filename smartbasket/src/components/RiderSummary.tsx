@@ -1,6 +1,24 @@
 import Link from 'next/link'
-import { ArrowUpRight, CheckCircle2, Package, Wallet } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
+import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 export default function RiderSummary({ earning, completed, today }: { earning: number; completed: number; today: number }) {
-  return <section className="space-y-5"><header className="flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Your delivery workspace</p><h1 className="text-3xl font-bold tracking-tight text-slate-900">Ready for the next stop.</h1><p className="mt-2 text-sm text-slate-500">Manage your deliveries and keep track of your day.</p></div><Link href="/delivery/my-deliveries" className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800">My deliveries <ArrowUpRight size={17} /></Link></header><div className="grid gap-3 sm:grid-cols-3">{[{ label: 'Earned today', value: `Rs. ${earning.toLocaleString('en-PK')}`, icon: Wallet }, { label: 'Delivered today', value: today, icon: Package }, { label: 'Total completed', value: completed, icon: CheckCircle2 }].map(({ label, value, icon: Icon }) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-center justify-between text-sm text-slate-500"><p>{label}</p><Icon size={20} className="text-emerald-700" /></div><p className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{value}</p></div>)}</div></section>
+  return <section className="rounded-xl border border-gray-400 bg-white p-5 text-center shadow-xl sm:p-6">
+    <h2 className="mb-3 text-sm font-medium text-green-700">Today’s Performance</h2>
+    <div role="img" aria-label={`${today} deliveries and Rs. ${earning} earned today`}>
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={[{ name: 'Today', deliveries: today, earnings: earning }]}>
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+          <YAxis tick={{ fontSize: 12 }} />
+          <Tooltip />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Bar dataKey="deliveries" name="Deliveries" fill="#16a34a" />
+          <Bar dataKey="earnings" name="Earnings (Rs.)" fill="#15803d" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+    <p className="mt-4 font-bold text-green-700">Rs. {earning.toLocaleString('en-PK')} Earned Today</p>
+    <button onClick={() => window.location.reload()} className="mt-4 w-full rounded-lg bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-700">Refresh Earnings</button>
+    <Link href="/delivery/my-deliveries" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-green-700">My deliveries ({completed}) <ArrowUpRight size={16} /></Link>
+  </section>
 }

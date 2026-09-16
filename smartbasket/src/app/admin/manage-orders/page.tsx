@@ -114,22 +114,16 @@ useEffect(()=>{
     }, [orders, search, statusFilter])
 
     return (
-        <main className="min-h-screen bg-[#f6f8f7] px-4 py-8 sm:px-6">
-            <div className="mx-auto max-w-6xl">
-                <button
-                    onClick={() => router.push('/')}
-                    className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-800"
-                >
-                    <ArrowLeft size={17} /> Dashboard
-                </button>
-
-                <header className="mb-7">
-                    <p className="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-700">Order desk</p>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Manage orders</h1>
-                    <p className="mt-2 text-sm text-slate-500">Track incoming orders, dispatch riders, and follow every delivery in real time.</p>
+        <main className="min-h-screen bg-gray-50 pb-12">
+            <header className="flex items-center gap-3 border-b border-gray-300 bg-white px-4 py-4 shadow-sm"><button onClick={() => router.push('/')} aria-label="Back to dashboard" className="rounded-full bg-gray-100 p-2 text-green-700"><ArrowLeft size={20} /></button><h1 className="text-xl font-bold text-gray-800">Manage Orders</h1></header>
+            <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
+                <header className="mb-8 text-center">
+                    <h2 className="text-3xl font-extrabold text-green-700">Orders Dashboard</h2>
+                    <p className="mt-2 text-sm text-gray-500">Track, update, and manage all orders in real-time.</p>
                 </header>
-
-                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <details className="mb-5 rounded-xl border border-gray-200 bg-white p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-green-700">Search and filter orders ({orders.length})</summary>
+                <div className="my-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {STATUS_TABS.map(tab => (
                         <button
                             key={tab.value}
@@ -162,6 +156,8 @@ useEffect(()=>{
                     <span className="whitespace-nowrap text-xs text-slate-500">{filtered.length} order{filtered.length === 1 ? "" : "s"}</span>
                 </label>
 
+                </details>
+
                 {error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
                 {loading ? (
@@ -176,7 +172,7 @@ useEffect(()=>{
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-5">
+                    <div className="grid items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
                         {filtered.map((order, index) => (
                             <AdminOrderCard key={order._id ?? index} order={order} />
                         ))}

@@ -47,6 +47,8 @@ function ForgotPassword() {
           <p className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 text-sm">
             If that email has an account, a reset link is on its way. The link expires in one hour.
           </p>
+          <p className="mt-3 text-sm text-gray-600">Check your inbox and spam folder. If you signed up with Google, this link lets you create a password for your existing account.</p>
+          <button type="button" onClick={() => setSent(false)} className="mt-4 text-sm font-medium text-green-700">Try again or use another email</button>
           <Link href="/login" className="mt-6 inline-block text-green-600 font-medium">
             Back to login
           </Link>

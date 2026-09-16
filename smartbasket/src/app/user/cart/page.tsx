@@ -1,27 +1,93 @@
 'use client'
-import { ArrowRight, Minus, Plus, ShoppingBasket, Trash2, Truck } from 'lucide-react'
+
+import { ArrowLeft, Loader2, Minus, Plus, ShoppingBasket, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch, RootState } from '@/redux/store'
+import Image from 'next/image'
 import { decreaseQuantity, increaseQuantity, removeFromCart } from '@/redux/cartSlice'
-import CustomerPageHeader from '@/components/CustomerPageHeader'
+import { useRouter } from 'next/navigation'
 
 const money = (value: number) => value.toLocaleString('en-PK', { maximumFractionDigits: 2 })
+
 export default function CartPage() {
   const { cartData, subTotal, finalTotal, deliveryFee, hydrated } = useSelector((state: RootState) => state.cart)
   const dispatch = useDispatch<AppDispatch>()
-  const quantity = cartData.reduce((sum, item) => sum + item.quantity, 0)
-  return <main className="min-h-screen bg-[#f6f8f7] pb-16"><CustomerPageHeader title="Your basket" subtitle="A few good things for your everyday." />
-    <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
-      {!hydrated ? <div role="status" aria-label="Loading basket" className="h-72 animate-pulse rounded-2xl border border-slate-200 bg-white motion-reduce:animate-none" /> : !cartData.length ? <section className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm"><span className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><ShoppingBasket size={38} /></span><h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Good things belong in your basket.</h2><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">Pick up your groceries and everyday essentials. Your basket is ready when you are.</p><Link href="/" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-800">Explore the store <ArrowRight size={17} /></Link></section> : <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="flex items-center justify-between border-b border-slate-100 p-5"><h2 className="font-semibold text-slate-900">Your groceries</h2><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">{quantity} {quantity === 1 ? 'item' : 'items'}</span></div><div className="divide-y divide-slate-100">{cartData.map(item => <article key={item._id} className="flex flex-wrap items-center gap-4 p-4 sm:p-5">
-          <Link href={`/product/${item._id}`} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 sm:h-24 sm:w-24">{item.image && <Image src={item.image} alt={item.name} fill sizes="96px" className="object-contain p-2" />}</Link>
-          <div className="min-w-0 flex-1"><Link href={`/product/${item._id}`} className="font-semibold text-slate-800 hover:text-emerald-700">{item.name}</Link><p className="mt-1 text-xs text-slate-500">Rs. {money(Number(item.price))} / {item.unit}</p><div className="mt-3 inline-flex items-center rounded-lg border border-slate-200"><button aria-label={`Decrease ${item.name} quantity`} onClick={() => dispatch(decreaseQuantity(item._id))} className="rounded-l-lg p-2 text-slate-500 hover:bg-emerald-50"><Minus size={15} /></button><span aria-live="polite" className="w-8 text-center text-sm font-semibold text-slate-800">{item.quantity}</span><button aria-label={`Increase ${item.name} quantity`} disabled={item.stock != null && item.quantity >= item.stock} onClick={() => dispatch(increaseQuantity(item._id))} className="rounded-r-lg p-2 text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-30"><Plus size={15} /></button></div>{item.stock != null && item.quantity >= item.stock && <p className="mt-1 text-xs text-amber-700">Maximum available quantity</p>}</div>
-          <div className="flex flex-col items-end gap-3"><p className="text-sm font-bold text-slate-900">Rs. {money(Number(item.price) * item.quantity)}</p><button aria-label={`Remove ${item.name} from basket`} onClick={() => dispatch(removeFromCart(item._id))} className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"><Trash2 size={18} /></button></div>
-        </article>)}</div><Link href="/" className="block border-t border-slate-100 px-5 py-4 text-sm font-semibold text-emerald-700">+ Add more groceries</Link></section>
-        <aside className="space-y-4 lg:sticky lg:top-6"><section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold text-slate-900">Order summary</h2><dl className="mt-6 space-y-4 text-sm"><div className="flex justify-between text-slate-500"><dt>Subtotal ({quantity} items)</dt><dd className="font-medium text-slate-800">Rs. {money(subTotal)}</dd></div><div className="flex justify-between text-slate-500"><dt>Delivery</dt><dd className="font-medium text-slate-800">{deliveryFee === 0 ? 'Free' : `Rs. ${money(deliveryFee)}`}</dd></div><div className="flex justify-between border-t border-slate-100 pt-4 text-lg font-bold text-slate-900"><dt>Total</dt><dd>Rs. {money(finalTotal)}</dd></div></dl><Link href="/user/checkout" className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3.5 text-sm font-semibold text-white transition hover:bg-emerald-800">Continue to checkout <ArrowRight size={17} /></Link><p className="mt-3 text-center text-xs leading-5 text-slate-500">Review your delivery address and payment on the next step.</p></section><div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4"><Truck size={21} className="shrink-0 text-emerald-700" /><p className="text-xs leading-5 text-emerald-800">Groceries to your doorstep. Follow your delivery from My Orders after checkout.</p></div></aside>
-      </div>}
+  const router = useRouter()
+
+  return (
+    <div className="w-[95%] sm:w-[90%] md:w-[80%] mx-auto mt-8 mb-24 relative">
+      <Link href="/" className="absolute -top-2 left-0 flex items-center gap-2 text-green-700 hover:text-green-800 font-medium transition-all">
+        <ArrowLeft size={20} />
+        <span className="hidden sm:inline">Back to home</span>
+      </Link>
+
+      <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-700 text-center">
+        Your Shopping Cart
+      </motion.h2>
+
+      {!hydrated ? (
+        <div className="mt-12 flex items-center justify-center gap-2 rounded-2xl bg-white py-20 text-gray-600 shadow-md">
+          <Loader2 className="animate-spin" size={22} /> Loading your cart...
+        </div>
+      ) : cartData.length === 0 ? (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="mt-10 text-center py-20 bg-white rounded-2xl shadow-md">
+          <ShoppingBasket className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 text-lg mb-6">Your Cart is empty. Add some groceries to continue shopping!</p>
+          <Link href="/" className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-all inline-block font-medium">Continue Shopping</Link>
+        </motion.div>
+      ) : (
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-5">
+            <AnimatePresence>
+              {cartData.map((item) => {
+                const maxed = item.stock != null && item.quantity >= item.stock
+                return (
+                  <motion.div key={item._id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="flex flex-col sm:flex-row items-center bg-white rounded-2xl shadow-md p-5 hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <Link href={`/product/${item._id}`} className="relative w-28 h-28 sm:w-24 sm:h-24 md:w-28 md:h-28 flex-shrink-0 rounded-xl overflow-hidden bg-gray-50">
+                      {item.image && <Image src={item.image} alt={item.name} fill sizes="112px" className="object-contain p-3 transition-transform duration-300 hover:scale-105" />}
+                    </Link>
+                    <div className="flex-1 w-full mt-4 sm:mt-0 sm:ml-5 text-center sm:text-left">
+                      <Link href={`/product/${item._id}`} className="text-base sm:text-lg font-semibold text-gray-800 line-clamp-1 hover:text-green-700">
+                        {item.name}
+                      </Link>
+                      <p className="text-xs text-gray-500">{item.unit}</p>
+                      <p className="text-green-700 font-bold mt-1 text-sm sm:text-base">Rs.{money(Number(item.price) * item.quantity)}</p>
+                      {maxed && <p className="mt-1 text-xs text-amber-700">Maximum available quantity</p>}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 mt-4 sm:mt-0 bg-gray-50 px-3 py-2 rounded-full">
+                      <button aria-label={`Decrease ${item.name} quantity`} className="bg-white p-1.5 rounded-full hover:bg-green-100 transition-all border border-gray-200" onClick={() => dispatch(decreaseQuantity(item._id))}>
+                        <Minus size={14} className="text-green-700" />
+                      </button>
+                      <span className="font-semibold text-gray-800 w-6 text-center">{item.quantity}</span>
+                      <button aria-label={`Increase ${item.name} quantity`} disabled={maxed} className="bg-white p-1.5 rounded-full hover:bg-green-100 transition border border-gray-200 disabled:cursor-not-allowed disabled:opacity-40" onClick={() => dispatch(increaseQuantity(item._id))}>
+                        <Plus size={14} className="text-green-700" />
+                      </button>
+                    </div>
+                    <button aria-label={`Remove ${item.name} from cart`} className="sm:ml-4 mt-3 sm:mt-0 text-red-500 hover:text-red-700 transition-all" onClick={() => dispatch(removeFromCart(item._id))}>
+                      <Trash2 size={18} />
+                    </button>
+                  </motion.div>
+                )
+              })}
+            </AnimatePresence>
+          </div>
+
+          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }} className="bg-white rounded-2xl shadow-xl p-6 h-fit sticky top-24 border border-gray-100 flex flex-col">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
+            <div className="space-y-3 text-gray-700 text-sm sm:text-base">
+              <div className="flex justify-between"><span>Subtotal</span><span className="text-green-700 font-semibold">Rs.{money(subTotal)}</span></div>
+              <div className="flex justify-between"><span>Delivery Fee</span><span className="text-green-700 font-semibold">{deliveryFee === 0 ? 'Free' : `Rs.${money(deliveryFee)}`}</span></div>
+              <hr className="my-3" />
+              <div className="flex justify-between font-bold text-lg sm:text-xl"><span>Final Total</span><span className="text-green-700 font-semibold">Rs.{money(finalTotal)}</span></div>
+            </div>
+            <motion.button whileTap={{ scale: 0.95 }} className="w-full mt-6 bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all font-semibold text-sm sm:text-base" onClick={() => router.push('/user/checkout')}>
+              Proceed to Checkout
+            </motion.button>
+          </motion.div>
+        </div>
+      )}
     </div>
-  </main>
+  )
 }

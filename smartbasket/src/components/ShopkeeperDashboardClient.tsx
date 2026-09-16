@@ -1,62 +1,61 @@
 'use client'
 
 import Link from 'next/link'
-import { Package, AlertTriangle, EyeOff, Boxes, Plus, ArrowUpRight, Store } from 'lucide-react'
+import { AlertTriangle, Boxes, EyeOff, Package, Plus, Store } from 'lucide-react'
+import { motion } from 'motion/react'
 
 type Props = { stats: { title: string; value: number }[] }
+
 const icons = [Boxes, Package, AlertTriangle, EyeOff]
-const colors = ['bg-emerald-50 text-emerald-700', 'bg-rose-50 text-rose-700', 'bg-amber-50 text-amber-700', 'bg-slate-100 text-slate-600']
-const descriptions = ['In the shared catalog', 'Ready for restocking', 'Stock is running low', 'Currently unavailable to shoppers']
 
 export default function ShopkeeperDashboardClient({ stats }: Props) {
   return (
-    <main className="min-h-screen bg-[#f6f8f7] px-4 pb-16 pt-28 sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-7xl space-y-7">
-        <header className="flex flex-wrap items-end justify-between gap-4 py-3">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Your catalog workspace</p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Shopkeeper dashboard</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Keep the shelves stocked and the essentials within reach.</p>
-          </div>
-          <Link href="/admin/add-grocery" className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"><Plus size={18} /> Add grocery</Link>
-        </header>
+    <div className="pt-28 w-[90%] md:w-[80%] mx-auto pb-16">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 text-center sm:text-left">
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-3xl md:text-4xl font-bold text-green-700">
+          Shopkeeper Dashboard
+        </motion.h1>
+        <Link href="/admin/add-grocery" className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full font-semibold hover:bg-green-700 transition-all shadow-md shadow-green-200">
+          <Plus size={18} /> Add Grocery
+        </Link>
+      </div>
 
-        <section aria-label="Inventory statistics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {stats.map((stat, i) => {
-            const Icon = icons[i] ?? Boxes
-            return (
-              <article key={stat.title} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-                <div className="mb-5 flex items-center justify-between gap-3"><p className="text-sm font-medium text-slate-500">{stat.title}</p><span className={`rounded-xl p-2.5 ${colors[i] ?? colors[0]}`}><Icon size={20} aria-hidden="true" /></span></div>
-                <p className="text-3xl font-bold tracking-tight text-slate-900 tabular-nums">{stat.value.toLocaleString('en-PK')}</p>
-                <p className="mt-2 text-xs text-slate-500">{descriptions[i]}</p>
-              </article>
-            )
-          })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {stats.map((stat, i) => {
+          const Icon = icons[i] ?? Boxes
+          return (
+            <motion.div key={stat.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.1 }} className="bg-white border border-gray-100 rounded-2xl shadow-md p-5 flex gap-4 items-center hover:shadow-lg transition-all">
+              <div className="bg-green-200 p-3 rounded-xl mb-2"><Icon className="text-green-700 w-6 h-6" /></div>
+              <div>
+                <p className="text-sm text-gray-600">{stat.title}</p>
+                <p className="text-2xl font-bold text-green-800">{stat.value.toLocaleString('en-PK')}</p>
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <section className="relative overflow-hidden rounded-2xl bg-linear-to-r from-green-500 to-green-700 p-8 text-white shadow-xl">
+          <Store size={34} className="mb-6 text-white" />
+          <h2 className="text-2xl font-extrabold">Manage your grocery shelf</h2>
+          <p className="mt-3 max-w-lg text-sm leading-7 text-green-50">
+            Add groceries, update prices, manage stock, and decide which products are visible in the store.
+          </p>
+          <Link href="/admin/view-grocery" className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-green-700 hover:bg-green-100 transition-all">
+            View Grocery
+          </Link>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="relative overflow-hidden rounded-2xl bg-emerald-950 p-7 text-white sm:p-10">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full border-[40px] border-white/5" />
-            <Store size={28} className="mb-7 text-emerald-300" />
-            <h2 className="relative text-2xl font-semibold tracking-tight">A well-stocked store starts here.</h2>
-            <p className="relative mt-3 max-w-md text-sm leading-7 text-emerald-100">Review your products, update prices, and make sure customers can find what they need.</p>
-            <Link href="/admin/view-grocery" className="relative mt-7 inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Manage inventory <ArrowUpRight size={18} /></Link>
-          </div>
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Your daily checklist</h2>
-            <p className="mt-1 text-sm text-slate-500">Small updates that keep your catalog ready.</p>
-            <ul className="mt-6 space-y-6">
-              {[
-                { icon: Package, title: 'Review stock levels', text: 'Replenish sold-out items and check low stock.' },
-                { icon: Boxes, title: 'Keep details current', text: 'Check product descriptions, images and prices.' },
-                { icon: EyeOff, title: 'Check availability', text: 'Hide products that are not ready for sale.' },
-              ].map(({ icon: Icon, title, text }) => (
-                <li key={title} className="flex gap-3"><span className="h-fit rounded-lg bg-emerald-50 p-2 text-emerald-700"><Icon size={18} /></span><div><h3 className="text-sm font-semibold text-slate-800">{title}</h3><p className="mt-1 text-xs leading-5 text-slate-500">{text}</p></div></li>
-              ))}
-            </ul>
+        <section className="bg-white border border-gray-100 rounded-2xl shadow-md p-5 h-fit">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Today&apos;s Checklist</h2>
+          <div className="space-y-3 text-sm text-gray-600">
+            <p className="rounded-xl bg-green-50 p-3">Check low stock products.</p>
+            <p className="rounded-xl bg-green-50 p-3">Update unavailable grocery items.</p>
+            <p className="rounded-xl bg-green-50 p-3">Review prices before customers order.</p>
           </div>
         </section>
       </div>
-    </main>
+    </div>
   )
 }

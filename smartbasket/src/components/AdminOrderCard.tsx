@@ -83,12 +83,12 @@ function AdminOrderCard({ order }: { order: IOrder }) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+            className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-md transition hover:shadow-lg"
         >
-            <div className="flex flex-col gap-5 p-5 sm:p-6 md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-col gap-4 p-5">
                 <div className="min-w-0 flex-1 space-y-4">
                     <div className="flex flex-wrap items-center gap-2">
-                        <p className="flex items-center gap-2 text-base font-bold text-slate-900">
+                        <p className="flex items-center gap-2 text-base font-bold text-green-700">
                             <Package size={18} className="text-emerald-700" />
                             Order #{order._id?.toString().slice(-6)}
                         </p>
@@ -104,7 +104,7 @@ function AdminOrderCard({ order }: { order: IOrder }) {
                         </span>
                     </div>
 
-                    <div className="grid gap-1.5 text-sm text-slate-600 sm:grid-cols-2">
+                    <div className="grid gap-1.5 text-sm text-gray-600">
                         <p className="flex items-center gap-2">
                             <User size={15} className="shrink-0 text-emerald-600" />
                             <span className="font-medium text-slate-800">{order?.address.fullName}</span>
@@ -113,7 +113,7 @@ function AdminOrderCard({ order }: { order: IOrder }) {
                             <Phone size={15} className="shrink-0 text-emerald-600" />
                             <span>{order?.address.mobile}</span>
                         </p>
-                        <p className="flex items-center gap-2 sm:col-span-2">
+                        <p className="flex items-center gap-2 ">
                             <MapPin size={15} className="mt-0.5 shrink-0 text-emerald-600" />
                             <span className="leading-5">{order?.address.fullAddress}</span>
                         </p>
@@ -142,7 +142,7 @@ function AdminOrderCard({ order }: { order: IOrder }) {
                     )}
                 </div>
 
-                <div className="flex shrink-0 flex-row items-center gap-2 md:flex-col md:items-end">
+                <div className="flex shrink-0 flex-col items-start gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${STATUS_STYLES[order.status] ?? "bg-slate-100 text-slate-700"}`}>
                         {status}
                     </span>
@@ -167,7 +167,7 @@ function AdminOrderCard({ order }: { order: IOrder }) {
             <div className="border-t border-slate-100 px-5 py-3 sm:px-6">
                 <button
                     onClick={() => setExpanded(prev => !prev)}
-                    className="flex w-full items-center justify-between text-sm font-medium text-slate-600 transition hover:text-emerald-700"
+                    className="flex w-full items-center justify-between text-sm font-medium text-green-700 transition hover:text-green-800"
                 >
                     <span className="flex items-center gap-2">
                         <Package size={16} className="text-emerald-600" />
