@@ -1,0 +1,56 @@
+{
+  "React Arrow Function Component": {
+    "prefix": "rafc",
+    "scope": "javascript,typescript,typescriptreact,javascriptreact",
+    "body": [
+      "const ${1:ComponentName}: React.FC = () => {",
+      "  return (",
+      "    <div>$0</div>",
+      "  );",
+      "};",
+      "",
+      "export default ${1:ComponentName};"
+    ],
+    "description": "React arrow function component"
+  },
+  "React Function Component": {
+    "prefix": "rfc",
+    "scope": "javascript,typescript,typescriptreact,javascriptreact",
+    "body": [
+      "function ${1:ComponentName}() {",
+      "  return (",
+      "    <div>$0</div>",
+      "  );",
+      "}",
+      "",
+      "export default ${1:ComponentName};"
+    ],
+    "description": "React function component"
+  },
+  "Import React": {
+    "prefix": "imp",
+    "scope": "javascript,typescript,typescriptreact,javascriptreact",
+    "body": [
+      "import React from 'react';"
+    ],
+    "description": "Import React statement"
+  },
+  "useState Hook": {
+    "prefix": "useState",
+    "scope": "javascript,typescript,typescriptreact,javascriptreact",
+    "body": [
+      "const [${1:state}, set${2:State}] = useState(${3:initialValue});"
+    ],
+    "description": "React useState hook"
+  },
+  "useEffect Hook": {
+    "prefix": "useEffect",
+    "scope": "javascript,typescript,typescriptreact,javascriptreact",
+    "body": [
+      "useEffect(() => {",
+      "  $1",
+      "}, [${2:dependencies}]);"
+    ],
+    "description": "React useEffect hook"
+  }
+}

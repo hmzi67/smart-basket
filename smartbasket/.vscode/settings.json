@@ -1,0 +1,44 @@
+{
+  "editor.snippetSuggestions": "top",
+  "editor.suggest.showSnippets": true,
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.tabCompletion": "onlySnippets",
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.quickSuggestionsDelay": 10,
+  "javascript.suggest.enabled": true,
+  "typescript.suggest.enabled": true,
+  "emmet.includeLanguages": {
+    "javascript": "javascript",
+    "javascriptreact": "javascriptreact",
+    "typescript": "typescript",
+    "typescriptreact": "typescriptreact"
+  },
+  "files.associations": {
+    "*.js": "javascript",
+    "*.jsx": "javascriptreact",
+    "*.ts": "typescript",
+    "*.tsx": "typescriptreact"
+  },
+  "[javascriptreact]": {
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.suggest.showSnippets": true,
+    "editor.tabCompletion": "onlySnippets"
+  },
+  "[typescriptreact]": {
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.suggest.showSnippets": true,
+    "editor.tabCompletion": "onlySnippets"
+  }
+}
