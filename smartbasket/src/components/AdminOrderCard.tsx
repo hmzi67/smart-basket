@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { motion } from 'motion/react'
 // local IOrder defined below; avoid importing server-side types
-import { ChevronDown, ChevronUp, CreditCard, MapPin, Package, Phone, Truck, User, UserCheck } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronUp, CreditCard, Loader2, MapPin, Package, Phone, Truck, User, UserCheck } from 'lucide-react'
 import Image from 'next/image'
 import { IUser } from '@/models/user.model'
 import axios from 'axios'
@@ -53,14 +53,35 @@ function AdminOrderCard({ order }: { order: IOrder }) {
     const [syncedStatus, setSyncedStatus] = useState<string>(order.status)
     const [expanded, setExpanded] = useState<boolean>(false)
     const [updating, setUpdating] = useState<boolean>(false)
+    const [isPaid, setIsPaid] = useState<boolean>(Boolean(order.isPaid))
+    const [syncedIsPaid, setSyncedIsPaid] = useState<boolean>(Boolean(order.isPaid))
+    const [approving, setApproving] = useState<boolean>(false)
+    const [approveError, setApproveError] = useState<string>('')
 
-    // Keep local status in sync when the order prop changes, without an effect.
+    // Keep local status/paid state in sync when the order prop changes, without an effect.
     if (order.status !== syncedStatus) {
         setSyncedStatus(order.status)
         setStatus(order.status)
     }
-    // some IOrder typings may not include isPaid; derive safely
-    const isPaid: boolean = Boolean((order as any).isPaid ?? false)
+    if (Boolean(order.isPaid) !== syncedIsPaid) {
+        setSyncedIsPaid(Boolean(order.isPaid))
+        setIsPaid(Boolean(order.isPaid))
+    }
+
+    const approvePayment = async () => {
+        if (!order._id) return
+        setApproving(true)
+        setApproveError('')
+        try {
+            await axios.post(`/api/admin/orders/${order._id}/approve-payment`)
+            setIsPaid(true)
+        } catch (error: any) {
+            console.error(error)
+            setApproveError(error?.response?.data?.message || 'Could not approve payment')
+        } finally {
+            setApproving(false)
+        }
+    }
     const updateStatus = async (orderId: string, status: string) => {
         setUpdating(true)
         try {
@@ -94,7 +115,7 @@ function AdminOrderCard({ order }: { order: IOrder }) {
                             Order #{order._id?.toString().slice(-6)}
                         </p>
                         {status !== "delivered" && (
-                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${order.isPaid
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isPaid
                                 ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
                                 : "border border-red-200 bg-red-50 text-red-700"}`}>
                                 {isPaid ? "Paid" : "Unpaid"}
@@ -125,20 +146,36 @@ function AdminOrderCard({ order }: { order: IOrder }) {
                     </div>
 
                     {order.paymentMethod === "online" && order.paymentProof && (
-                        <a
-                            href={order.paymentProof}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-fit"
-                        >
-                            <Image
-                                src={order.paymentProof}
-                                alt="Transaction screenshot"
-                                width={96}
-                                height={96}
-                                className="rounded-lg border border-slate-200 object-cover transition hover:opacity-80"
-                            />
-                        </a>
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <p className="mb-2 text-xs font-semibold text-slate-600">Transaction screenshot</p>
+                            <a href={order.paymentProof} target="_blank" rel="noopener noreferrer" className="block w-fit">
+                                <Image
+                                    src={order.paymentProof}
+                                    alt="Transaction screenshot"
+                                    width={220}
+                                    height={220}
+                                    className="max-h-56 w-auto rounded-lg border border-slate-200 object-contain transition hover:opacity-80"
+                                />
+                            </a>
+                            <div className="mt-3">
+                                {isPaid ? (
+                                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+                                        <CheckCircle2 size={16} /> Payment verified
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        disabled={approving}
+                                        onClick={approvePayment}
+                                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {approving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                                        Approve payment
+                                    </button>
+                                )}
+                                {approveError && <p role="alert" className="mt-1.5 text-xs text-red-600">{approveError}</p>}
+                            </div>
+                        </div>
                     )}
 
                     {order.assignedDeliveryBoy && (

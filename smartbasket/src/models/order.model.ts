@@ -47,6 +47,12 @@ const orderSchema = new mongoose.Schema<IOrder>({
         ref: "User",
         required: true
     },
+    // cod orders are settled on delivery and don't need this; online orders start
+    // unpaid until an admin verifies the uploaded transaction screenshot.
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
     items: [
         {
             grocery: {
