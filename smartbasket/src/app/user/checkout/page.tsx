@@ -37,6 +37,8 @@ function Checkout() {
     const [locationError, setLocationError] = useState('')
     const [searchLoading, setSearchLoading] = useState("false")
     const [searchQuery, setSearchQuery] = useState("")
+    const [suggestions, setSuggestions] = useState<{ label: string; x: number; y: number }[]>([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
     const [position, setPosition] = useState<[number, number]>(DEFAULT_POSITION)
     const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod")
     const [orderLoading, setOrderLoading] = useState(false)
@@ -75,6 +77,7 @@ function Checkout() {
             const results = await provider.search({ query: searchQuery });
             if (results.length > 0) {
                 setPosition([results[0].y, results[0].x])
+                setShowSuggestions(false)
             } else {
                 setLocationError(`No location found for "${searchQuery}". Try another area or move the map pin.`)
             }
@@ -84,6 +87,37 @@ function Checkout() {
         } finally {
             setSearchLoading("false")
         }
+    }
+
+    // live suggestions as the user types, debounced so every keystroke doesn't hit Nominatim
+    useEffect(() => {
+        const query = searchQuery.trim()
+        if (query.length < 3) {
+            setSuggestions([])
+            return
+        }
+        let cancelled = false
+        const timer = setTimeout(async () => {
+            try {
+                const { OpenStreetMapProvider } = await import("leaflet-geosearch")
+                const provider = new OpenStreetMapProvider()
+                const results = await provider.search({ query })
+                if (cancelled) return
+                setSuggestions(results.slice(0, 5).map(r => ({ label: r.label, x: r.x, y: r.y })))
+                setShowSuggestions(true)
+            } catch (error) {
+                if (!cancelled) console.error("Suggestion error:", error)
+            }
+        }, 350)
+        return () => { cancelled = true; clearTimeout(timer) }
+    }, [searchQuery])
+
+    const handleSelectSuggestion = (suggestion: { label: string; x: number; y: number }) => {
+        setPosition([suggestion.y, suggestion.x])
+        setSearchQuery(suggestion.label)
+        setSuggestions([])
+        setShowSuggestions(false)
+        setLocationError("")
     }
 
     const handleCod = async () => {
@@ -231,7 +265,7 @@ function Checkout() {
                 {([{ key: 'fullName', label: 'Full name', placeholder: 'Recipient name', autoComplete: 'name' }, { key: 'mobile', label: 'Mobile number', placeholder: '03XXXXXXXXX', autoComplete: 'tel' }, { key: 'city', label: 'City', placeholder: 'City', autoComplete: 'address-level2' }, { key: 'state', label: 'Province / region', placeholder: 'Province or region', autoComplete: 'address-level1' }, { key: 'pincode', label: 'Postal code', placeholder: 'Postal code', autoComplete: 'postal-code' }] as const).map(field => <label key={field.key} className="block text-xs font-semibold text-gray-600">{field.label}<input type={field.key === 'mobile' ? 'tel' : 'text'} autoComplete={field.autoComplete} value={address[field.key]} onChange={event => setAddress(prev => ({ ...prev, [field.key]: event.target.value }))} placeholder={field.placeholder} className="mt-2 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-3 text-sm font-normal text-gray-800 outline-none focus:ring-2 focus:ring-green-500" /></label>)}
                 <label className="block text-xs font-semibold text-gray-600 sm:col-span-2">Street address<textarea autoComplete="street-address" rows={2} value={address.fullAddress} onChange={event => setAddress(prev => ({ ...prev, fullAddress: event.target.value }))} placeholder="House, street and nearby landmark" className="mt-2 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-3 text-sm font-normal text-gray-800 outline-none focus:ring-2 focus:ring-green-500" /></label>
               </div>
-              <div className="mt-6 border-t border-gray-100 pt-5"><label htmlFor="location-search" className="text-xs font-semibold text-gray-600">Find your location</label><form onSubmit={event => { event.preventDefault(); void handleSearchQuery() }} className="mt-2 flex gap-2"><input id="location-search" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Search city or area" className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-green-500" /><button type="submit" disabled={searchLoading === 'true'} className="rounded-lg bg-green-600 px-4 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">{searchLoading === 'true' ? <Loader2 size={18} className="animate-spin" /> : 'Search'}</button></form><div className="relative isolate mt-4 h-72 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-inner">{position ? <CheckOutMap position={position} setPosition={setPosition} /> : <p role="status" className="flex h-full items-center justify-center text-sm text-gray-500">Finding your location...</p>}<button type="button" aria-label="Use my current location" onClick={handleCurrentLocation} className="absolute bottom-6 right-3 z-10 rounded-xl bg-white p-3 text-green-700 shadow-md hover:bg-green-50"><LocateFixed size={20} /></button></div>{locationError && <p role="alert" className="mt-2 text-xs text-amber-700">{locationError}</p>}<p className="mt-2 text-xs text-gray-500">Drag the pin to your delivery location.</p></div>
+              <div className="mt-6 border-t border-gray-100 pt-5"><label htmlFor="location-search" className="text-xs font-semibold text-gray-600">Find your location</label><div className="relative mt-2"><form onSubmit={event => { event.preventDefault(); void handleSearchQuery() }} className="flex gap-2"><input id="location-search" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} onFocus={() => { if (suggestions.length) setShowSuggestions(true) }} onBlur={() => setTimeout(() => setShowSuggestions(false), 150)} placeholder="Search city or area" autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-green-500" /><button type="submit" disabled={searchLoading === 'true'} className="rounded-lg bg-green-600 px-4 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">{searchLoading === 'true' ? <Loader2 size={18} className="animate-spin" /> : 'Search'}</button></form>{showSuggestions && suggestions.length > 0 && <ul role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 max-h-60 overflow-auto rounded-lg border border-gray-200 bg-white text-sm shadow-lg">{suggestions.map((suggestion, i) => <li key={`${suggestion.label}-${i}`}><button type="button" role="option" onMouseDown={event => event.preventDefault()} onClick={() => handleSelectSuggestion(suggestion)} className="block w-full truncate px-3 py-2 text-left text-gray-700 hover:bg-green-50">{suggestion.label}</button></li>)}</ul>}</div><div className="relative isolate mt-4 h-72 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-inner">{position ? <CheckOutMap position={position} setPosition={setPosition} /> : <p role="status" className="flex h-full items-center justify-center text-sm text-gray-500">Finding your location...</p>}<button type="button" aria-label="Use my current location" onClick={handleCurrentLocation} className="absolute bottom-6 right-3 z-10 rounded-xl bg-white p-3 text-green-700 shadow-md hover:bg-green-50"><LocateFixed size={20} /></button></div>{locationError && <p role="alert" className="mt-2 text-xs text-amber-700">{locationError}</p>}<p className="mt-2 text-xs text-gray-500">Drag the pin to your delivery location.</p></div>
             </section>
             <aside className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xl lg:sticky lg:top-6">
               <h2 className="text-lg font-semibold text-gray-800">Payment & summary</h2><p className="mt-1 text-xs text-gray-500">Choose how you&apos;d like to pay.</p>
