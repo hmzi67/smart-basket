@@ -33,7 +33,11 @@ function RegisterForm({ previousStep }: propType) {
     } catch (error) {
       console.error(error)
       setLoading(false)
-      setError('Registration failed. Please try again.')
+      const message =
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : 'Registration failed. Please try again.'
+      setError(message)
     }
   }
   const formValidation = name !== '' && email !== '' && password !== ''
