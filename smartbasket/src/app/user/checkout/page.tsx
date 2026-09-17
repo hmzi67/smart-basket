@@ -44,12 +44,10 @@ function Checkout() {
     const [orderLoading, setOrderLoading] = useState(false)
     const [orderError, setOrderError] = useState("")
 
-    // --- Easypaisa states ---
-    const [epMobileNumber, setEpMobileNumber] = useState("")
-    const [epEmail, setEpEmail] = useState("")
-    const [epLoading, setEpLoading] = useState(false)
-    const [epMessage, setEpMessage] = useState("")
-    const [epSuccess, setEpSuccess] = useState(false)
+    // --- Online payment proof states ---
+    const [proofFile, setProofFile] = useState<File | null>(null)
+    const [proofPreview, setProofPreview] = useState("")
+    const [proofMessage, setProofMessage] = useState("")
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -92,12 +90,12 @@ function Checkout() {
     // live suggestions as the user types, debounced so every keystroke doesn't hit Nominatim
     useEffect(() => {
         const query = searchQuery.trim()
-        if (query.length < 3) {
-            setSuggestions([])
-            return
-        }
         let cancelled = false
         const timer = setTimeout(async () => {
+            if (query.length < 3) {
+                setSuggestions([])
+                return
+            }
             try {
                 const { OpenStreetMapProvider } = await import("leaflet-geosearch")
                 const provider = new OpenStreetMapProvider()
@@ -120,7 +118,7 @@ function Checkout() {
         setLocationError("")
     }
 
-    const handleCod = async () => {
+    const placeOrder = async (paymentMethod: "cod" | "online", paymentProof?: string) => {
         setOrderError("")
         if (!position) {
             setOrderError("Please select your location on the map.")
@@ -144,7 +142,8 @@ function Checkout() {
                     image: item.image,
                     quantity: item.quantity
                 })),
-                paymentMethod: "cod",
+                paymentMethod,
+                paymentProof,
                 address: {
                     fullName: address.fullName,
                     mobile: address.mobile,
@@ -155,7 +154,7 @@ function Checkout() {
                     latitude: position[0],
                     longitude: position[1]
                 },
-               
+
             })
             // the order route has already emptied the stored cart; clear the
             // in-session copy too, or useCartSync would write it straight back
@@ -169,47 +168,35 @@ function Checkout() {
         }
     }
 
-    // --- Easypaisa Payment Trigger Function ---
+    const handleCod = () => placeOrder("cod")
+
+    const handleProofChange = (file: File | null) => {
+        setProofFile(file)
+        setProofMessage("")
+        setProofPreview(prev => {
+            if (prev) URL.revokeObjectURL(prev)
+            return file ? URL.createObjectURL(file) : ""
+        })
+    }
+
+    // Uploads the transaction screenshot, then places the order with its URL attached.
     const handleOnlineOrder = async () => {
-        if (!epMobileNumber || !epEmail) {
-            setEpSuccess(false)
-            setEpMessage("Error: Please enter your Easypaisa number and email.")
-            return;
+        if (!proofFile) {
+            setProofMessage("Please upload a screenshot of your transaction.")
+            return
         }
-
-        setEpLoading(true)
-        setEpMessage("")
-        setEpSuccess(false)
-
+        setOrderError("")
+        setProofMessage("")
+        setOrderLoading(true)
         try {
-            const res = await fetch("/api/easypaisa/direct-pay", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    mobileNumber: epMobileNumber,
-                    email: epEmail,
-                    amount: finalTotal.toString(),
-                    addressDetails: address,
-                    userId: userData?._id
-                }),
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                setEpSuccess(true)
-                setEpMessage("Success! Please check your mobile for the PIN popup and approve the payment.")
-                // Optionally redirect to success page after approval
-                // router.push("/user/order-success")
-            } else {
-                setEpSuccess(false)
-                setEpMessage(`Error: ${data.message || data.error}`)
-            }
-        } catch {
-            setEpSuccess(false)
-            setEpMessage("Server error! Please try again.")
-        } finally {
-            setEpLoading(false)
+            const formData = new FormData()
+            formData.append("image", proofFile)
+            const { data } = await axios.post("/api/user/order/payment-proof", formData)
+            await placeOrder("online", data.url)
+        } catch (error: any) {
+            console.error(error)
+            setProofMessage(error?.response?.data?.message || "Could not upload the screenshot. Please try again.")
+            setOrderLoading(false)
         }
     }
 
@@ -269,10 +256,10 @@ function Checkout() {
             </section>
             <aside className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xl lg:sticky lg:top-6">
               <h2 className="text-lg font-semibold text-gray-800">Payment & summary</h2><p className="mt-1 text-xs text-gray-500">Choose how you&apos;d like to pay.</p>
-              <div className="mt-5 space-y-3">{([{ value: 'cod', label: 'Cash on delivery', detail: 'Pay when your groceries arrive', icon: Truck }, { value: 'online', label: 'Easypaisa', detail: 'Pay with your mobile wallet', icon: CreditCard }] as const).map(({ value, label, detail, icon: Icon }) => <button key={value} type="button" aria-pressed={paymentMethod === value} onClick={() => { setPaymentMethod(value); setOrderError(''); setEpMessage('') }} className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition ${paymentMethod === value ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:bg-green-50'}`}><Icon size={20} className="shrink-0 text-green-700" /><span className="flex-1"><span className="block text-sm font-semibold text-gray-800">{label}</span><span className="mt-1 block text-xs text-gray-500">{detail}</span></span><span className={`h-4 w-4 rounded-full border ${paymentMethod === value ? 'border-[5px] border-green-600' : 'border-gray-300'}`} /></button>)}</div>
-              {paymentMethod === 'online' && <div className="mt-4 space-y-3 rounded-xl bg-slate-50 p-4"><label className="block text-xs font-semibold text-slate-600">Wallet mobile number<input type="tel" value={epMobileNumber} onChange={event => setEpMobileNumber(event.target.value)} placeholder="03XXXXXXXXX" className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm font-normal" /></label><label className="block text-xs font-semibold text-slate-600">Email<input type="email" value={epEmail} onChange={event => setEpEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm font-normal" /></label>{epMessage && <p role="status" className={`text-xs leading-5 ${epSuccess ? 'text-emerald-700' : 'text-red-600'}`}>{epMessage}</p>}</div>}
+              <div className="mt-5 space-y-3">{([{ value: 'cod', label: 'Cash on delivery', detail: 'Pay when your groceries arrive', icon: Truck }, { value: 'online', label: 'Easypaisa', detail: 'Pay via bank transfer and upload proof', icon: CreditCard }] as const).map(({ value, label, detail, icon: Icon }) => <button key={value} type="button" aria-pressed={paymentMethod === value} onClick={() => { setPaymentMethod(value); setOrderError(''); setProofMessage('') }} className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition ${paymentMethod === value ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:bg-green-50'}`}><Icon size={20} className="shrink-0 text-green-700" /><span className="flex-1"><span className="block text-sm font-semibold text-gray-800">{label}</span><span className="mt-1 block text-xs text-gray-500">{detail}</span></span><span className={`h-4 w-4 rounded-full border ${paymentMethod === value ? 'border-[5px] border-green-600' : 'border-gray-300'}`} /></button>)}</div>
+              {paymentMethod === 'online' && <div className="mt-4 space-y-3 rounded-xl bg-slate-50 p-4"><label className="block text-xs font-semibold text-slate-600">Transaction screenshot<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => handleProofChange(event.target.files?.[0] ?? null)} className="mt-2 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-green-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-green-700" /></label>{proofPreview && <img src={proofPreview} alt="Transaction screenshot preview" className="max-h-48 rounded-lg border border-slate-200 object-contain" />}{proofMessage && <p role="status" className="text-xs leading-5 text-red-600">{proofMessage}</p>}</div>}
               <dl className="mt-6 space-y-3 border-t border-slate-100 pt-5 text-sm"><div className="flex justify-between text-slate-500"><dt>Subtotal</dt><dd className="text-slate-800">Rs. {subTotal.toLocaleString('en-PK')}</dd></div><div className="flex justify-between text-slate-500"><dt>Delivery</dt><dd className="text-slate-800">{deliveryFee === 0 ? 'Free' : `Rs. ${deliveryFee.toLocaleString('en-PK')}`}</dd></div><div className="flex justify-between border-t border-slate-100 pt-4 text-lg font-bold text-slate-900"><dt>Total</dt><dd>Rs. {finalTotal.toLocaleString('en-PK')}</dd></div></dl>
-              <button type="button" disabled={epLoading || orderLoading || !cartData.length} onClick={() => { if (paymentMethod === 'cod') void handleCod(); else void handleOnlineOrder() }} className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">{epLoading || orderLoading ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : paymentMethod === 'cod' ? 'Place order' : 'Pay & place order'}</button>
+              <button type="button" disabled={orderLoading || !cartData.length} onClick={() => { if (paymentMethod === 'cod') void handleCod(); else void handleOnlineOrder() }} className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">{orderLoading ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : paymentMethod === 'cod' ? 'Place order' : 'Pay & place order'}</button>
               {orderError && <p role="alert" className="mt-3 text-sm text-red-600">{orderError}</p>}{!cartData.length && <p className="mt-3 text-center text-xs text-slate-500">Your basket is empty. <Link href="/" className="font-semibold text-emerald-700">Add groceries</Link></p>}
             </aside>
           </div>

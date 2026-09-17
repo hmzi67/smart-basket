@@ -22,6 +22,7 @@ interface IOrder {
     isPaid?: boolean
     totalAmount?: string,
     paymentMethod: "cod" | "online"
+    paymentProof?: string
 
     address: {
         fullName: string,

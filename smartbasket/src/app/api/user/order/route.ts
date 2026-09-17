@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
                 { status: 401 }
             )
         }
-        const { items, paymentMethod, address } = await req.json()
+        const { items, paymentMethod, address, paymentProof } = await req.json()
         const userId = session.user.id
 
         const missing = Object.entries({ items: items?.length, paymentMethod, address })
@@ -28,6 +28,12 @@ export async function POST(req: NextRequest) {
         if (missing.length > 0) {
             return NextResponse.json(
                 { message: `Missing order fields: ${missing.join(", ")}` },
+                { status: 400 }
+            )
+        }
+        if (paymentMethod === "online" && !paymentProof) {
+            return NextResponse.json(
+                { message: "Upload a screenshot of your transaction to place an online order" },
                 { status: 400 }
             )
         }
@@ -63,6 +69,7 @@ export async function POST(req: NextRequest) {
                 paymentMethod,
                 totalAmount: String(finalTotal),
                 address,
+                paymentProof: paymentMethod === "online" ? paymentProof : null,
             })
 
             // the cart has become an order — empty the stored copy

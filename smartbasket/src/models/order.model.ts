@@ -16,6 +16,8 @@ export interface IOrder {
     isPaid:boolean
     totalAmount: string,
     paymentMethod: "cod" | "online"
+    /** Cloudinary URL of the customer's uploaded transaction screenshot, for online payments */
+    paymentProof?: string
 
 address: {
     fullName: string,
@@ -68,6 +70,10 @@ const orderSchema = new mongoose.Schema<IOrder>({
         enum: ["cod", "online"],
        default: "cod"
   },
+    paymentProof: {
+        type: String,
+        default: null
+    },
     address: {
         fullName: { type: String, required: true },
         mobile: { type: String, required: true },

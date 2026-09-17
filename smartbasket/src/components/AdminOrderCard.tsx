@@ -22,6 +22,7 @@ interface IOrder {
     isPaid?: boolean
     totalAmount?: string,
     paymentMethod: "cod" | "online"
+    paymentProof?: string
 
     address: {
         fullName: string,
@@ -122,6 +123,23 @@ function AdminOrderCard({ order }: { order: IOrder }) {
                             <span>{order.paymentMethod === "cod" ? "Cash on delivery" : "Online payment"}</span>
                         </p>
                     </div>
+
+                    {order.paymentMethod === "online" && order.paymentProof && (
+                        <a
+                            href={order.paymentProof}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-fit"
+                        >
+                            <Image
+                                src={order.paymentProof}
+                                alt="Transaction screenshot"
+                                width={96}
+                                height={96}
+                                className="rounded-lg border border-slate-200 object-cover transition hover:opacity-80"
+                            />
+                        </a>
+                    )}
 
                     {order.assignedDeliveryBoy && (
                         <div className="flex items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
